@@ -19,11 +19,14 @@
         };
         ws.onclose = function (evt) {
             console.log("消息通道已经关闭");
+            setTimeout(function () {
+                message(option);
+            }, 1000);
         };
     }
 
     message({
-        uri: 'ws://localhost:9066/echo'
+        uri: 'ws://dc.jghb.top:9066/echo'
     })
 </script>
 </body>

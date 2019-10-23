@@ -28,7 +28,7 @@ window.axios.interceptors.request.use(
 );
 
 window.uris = {
-    server: 'http://localhost:8000'
+    server: 'http://49.232.235.184:8000'
 };
 window.uris.login = '/login.cgi';
 window.uris.source = {

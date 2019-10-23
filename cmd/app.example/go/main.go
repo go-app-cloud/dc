@@ -45,6 +45,12 @@ func echo(ctx goapp.Context) {
 		}
 	}
 }
+
+type StanderRequest struct {
+	Code int         `json:"code"`
+	Data interface{} `json:"data"`
+}
+
 func main() {
 	conf := Go{}
 	if err := goapp.LoadXMLConfig(config, &conf); err != nil {
@@ -67,23 +73,34 @@ func main() {
 		}
 		_, err := token.Parse(authorization)
 		if err != nil {
+			log.Println(err)
 			ctx.StatusCode(400)
 			return
 		}
 		ctx.Next()
 	})
 	app.Post("/rec.cgi", func(ctx goapp.Context) {
-		var a interface{}
-		ctx.ReadJSON(&a)
-		devices.Range(func(key, value interface{}) bool {
-			c := value.(*websocket.Conn)
-			c.WriteJSON(a)
-			log.Println(a)
-			return true
-		})
-		ctx.JSON(goapp.Map{
-			`success`: true,
-		})
+		//var a interface{}
+		//ctx.ReadJSON(&a)
+		//devices.Range(func(key, value interface{}) bool {
+		//	c := value.(*websocket.Conn)
+		//	c.WriteJSON(a)
+		//	log.Println(a)
+		//	return true
+		//})
+		//ctx.JSON(goapp.Map{
+		//	`success`: true,
+		//})
+		var req StanderRequest
+		ctx.ReadJSON(&req)
+		switch req.Code {
+		case 0:
+			log.Println(req.Data)
+			break
+		case 1:
+			break
+
+		}
 	})
 
 	if err := app.Run(goapp.Addr(fmt.Sprintf(":%d", conf.Port)), nil); err != nil {

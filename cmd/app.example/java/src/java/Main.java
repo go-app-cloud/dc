@@ -5,14 +5,38 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 
-class MyData {
+class StanderRequest {
+    private int Code;
+    private Object Data;
+
+    public StanderRequest(int code, Object data) {
+        Code = code;
+        Data = data;
+    }
+
+    public int getCode() {
+        return Code;
+    }
+
+    public void setCode(int code) {
+        Code = code;
+    }
+
+    public Object getData() {
+        return Data;
+    }
+
+    public void setData(Object data) {
+        Data = data;
+    }
+}
+
+class Data1 {
     private String name;
-    private String id;
     private String email;
 
-    public MyData(String name, String id, String email) {
+    public Data1(String name, String email) {
         this.name = name;
-        this.id = id;
         this.email = email;
     }
 
@@ -24,14 +48,6 @@ class MyData {
         this.name = name;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getEmail() {
         return email;
     }
@@ -41,12 +57,38 @@ class MyData {
     }
 }
 
+class Data2 {
+    private String sex;
+    private String wchart;
+
+    public Data2(String sex, String wchart) {
+        this.sex = sex;
+        this.wchart = wchart;
+    }
+
+    public String getSex() {
+        return sex;
+    }
+
+    public void setSex(String sex) {
+        this.sex = sex;
+    }
+
+    public String getWchart() {
+        return wchart;
+    }
+
+    public void setWchart(String wchart) {
+        this.wchart = wchart;
+    }
+}
+
 public class Main {
     private OkHttpClient client = null;
-    private String RouteURL = "http://localhost:8000/source/login.cgi";
-    private String RefreshURL = "http://localhost:8000/source/login.cgi";
-    private String id = "b6c837870b0a4fcca737e9459867500d";
-    private String secret = ".F!QAoCB+RfjDov%84u#A95tf1RFWyROLl2SJHBFLIR%WD$U)]HnMu4]DoTJSGDM";
+    private String RouteURL = "http://114.jghb.top:8000/source/login.cgi";
+    private String RefreshURL = "http://114.jghb.top:8000/source/refresh.cgi";
+    private String id = "b3a69ff2740e41319132c51271fab38a";
+    private String secret = "hoTql.yUHw^H)OdM0rR1S%p%*$8^rE3(Es3xK*I%V@gyS]SR*[]qnx7X$@flkaiJ";
 
     private Router getRouter() {
         Router r = null;
@@ -112,7 +154,7 @@ public class Main {
         String token = router.getData().getToken();
         System.out.println(uri);
         System.out.println(token);
-        boolean b = o.sendData(uri, token, new MyData("a", "b", "c"));
+        boolean b = o.sendData(uri, token, new StanderRequest(0, new Data1("admin", "pass")));
 
 
         System.out.println("=====END=====");
