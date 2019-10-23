@@ -1,0 +1,9 @@
+{
+  "name": "Data fusion platform",
+  "version": "0.0.1",
+  "description": "Data fusion, authorization applications, authentication services, container services",
+  "title": "Data fusion platform API Doc",
+  "template": {
+    "withGenerator": false
+  }
+}
