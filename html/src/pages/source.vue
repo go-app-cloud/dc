@@ -41,7 +41,7 @@
                             </el-form-item>
                             <el-form-item label="检测类型：">
                                 <span style="color: #888">
-                                    <template v-if="props.row.check === 0">心跳检测</template>
+                                    <template v-if="props.row.check === '0'">心跳检测</template>
                                     <template v-else>PING检测</template>
                                 </span>
                             </el-form-item>
@@ -91,8 +91,7 @@
                                 操作<i class="el-icon-arrow-down el-icon--right"></i>
                             </el-button>
                             <el-dropdown-menu slot="dropdown">
-                                <el-dropdown-item>配置</el-dropdown-item>
-                                <el-dropdown-item>授权</el-dropdown-item>
+                                <el-dropdown-item @click.native="config(props.row.id)">配置</el-dropdown-item>
                                 <el-dropdown-item @click.native="open(props.row.api_doc)">文档</el-dropdown-item>
                                 <el-dropdown-item @click.native="remove(props.row.id)" divided>删除
                                 </el-dropdown-item>
@@ -138,11 +137,16 @@
         mounted() {
             let _this = this;
             resource(window.uris.server + window.uris.source.select, _this.$data.c, page, function (res) {
+                console.log(res.data.items);
                 _this.$data.tableData = res.data.items;
                 _this.$data.total = res.data.total;
             });
         },
         methods: {
+            config(id) {
+                let _this = this;
+                _this.$router.push({path: '/1-1/edit/' + id})
+            },
             tableRowStyle({row, rowIndex}) {
                 return 'font-size:0.8rem;'
             },

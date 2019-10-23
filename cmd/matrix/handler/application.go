@@ -31,30 +31,24 @@ func (p *Application) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 		name := ctx.FormValue("name")
 		uri := ctx.FormValue("uri")
 		section := ctx.FormValue("section")
-		check, err := strconv.Atoi(ctx.FormValue("check"))
 		_type := ctx.FormValue("type")
 		description := ctx.FormValue("description")
 		apiDoc := ctx.FormValue("api_doc")
-		if err != nil {
-			res.Code = goapp.CheckTypeError
+		s := db.Source{
+			Id:          strings.ReplaceAll(uuid.Must(uuid.NewV4()).String(), "-", ""),
+			Name:        name,
+			Service:     uri,
+			Description: description,
+			Section:     section,
+			ApiDoc:      apiDoc,
+			Type:        _type,
+			Check:       ctx.FormValue("check"),
+		}
+		if _, err := dbEngine.Insert(s); err != nil {
+			res.Code = goapp.DBError
 			res.Msg = err.Error()
 			goto ErrorAddCGI
 		} else {
-			s := db.Source{
-				Id:          strings.ReplaceAll(uuid.Must(uuid.NewV4()).String(), "-", ""),
-				Name:        name,
-				Service:     uri,
-				Description: description,
-				Section:     section,
-				ApiDoc:      apiDoc,
-				Type:        _type,
-				Check:       check,
-			}
-			if _, err = dbEngine.Insert(s); err != nil {
-				res.Code = goapp.DBError
-				res.Msg = err.Error()
-				goto ErrorAddCGI
-			}
 			res.Code = goapp.Success
 			_, _ = ctx.JSON(res)
 			return

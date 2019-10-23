@@ -31,7 +31,7 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item label="提供服务:" :rules="[{ required: true, message: '提供服务不能为空'}]">
-                    <el-input v-model="form.uri"></el-input>
+                    <el-input v-model="form.service"></el-input>
                 </el-form-item>
                 <el-form-item label="文档:" :rules="[{ required: true, message: '文档不能为空'}]">
                     <el-input v-model="form.api_doc"></el-input>
@@ -43,7 +43,7 @@
                     </el-radio-group>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="success" @click="onSubmit">立即创建</el-button>
+                    <el-button type="success" @click="onSubmit">{{button_text}}</el-button>
                     <el-button type="danger" plain>取消</el-button>
                 </el-form-item>
             </el-form>
@@ -52,6 +52,7 @@
 </template>
 
 <script>
+    let submitType = 0;
     import {Loading} from 'element-ui';
 
     export default {
@@ -60,9 +61,10 @@
             return {
                 types: [],
                 sections: [],
+                button_text: '立即创建',
                 form: {
                     name: '',
-                    uri: '',
+                    service: '',
                     check: '0',
                     section: '',
                     type: '',
@@ -78,14 +80,26 @@
                     lock: true,
                     text: '正在提交数据保存...',
                 });
-                setTimeout(function () {
-                    axios.post(window.uris.server + window.uris.source.add, _this.$data.form).then(function (response) {
-                        loading.close();
-                    }).catch(function (error) {
-                        loading.close();
-                        this.$message.error(error);
-                    });
-                }, 1000);
+                if (submitType === 0) {
+                    setTimeout(function () {
+                        axios.post(window.uris.server + window.uris.source.add, _this.$data.form).then(function (response) {
+                            loading.close();
+                        }).catch(function (error) {
+                            loading.close();
+                            this.$message.error(error);
+                        });
+                    }, 1000);
+                } else {
+                    setTimeout(function () {
+                        axios.post(window.uris.server + window.uris.source.modify, _this.$data.form).then(function (response) {
+                            loading.close();
+                        }).catch(function (error) {
+                            loading.close();
+                            this.$message.error(error);
+                        });
+                    }, 1000);
+                }
+
             },
             goBack() {
                 this.$router.push({path: '/1-1'});
@@ -93,6 +107,16 @@
         },
         mounted() {
             let _this = this;
+            if (typeof this.$route.params.id != 'undefined') {
+                submitType = 1;
+                _this.$data.button_text = '更新数据';
+                axios.post(window.uris.server + window.uris.source.get, {
+                    id: this.$route.params.id,
+                }).then(function (response) {
+                    _this.$data.form = response.data.data
+                }).catch(function (error) {
+                });
+            }
             axios.get(window.uris.server + '/type.json')
                 .then(function (res) {
                     _this.$data.types = res.data

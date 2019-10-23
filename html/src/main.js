@@ -28,14 +28,15 @@ window.axios.interceptors.request.use(
 );
 
 window.uris = {
-    server: 'http://49.232.235.184:8000'
+    server: 'http://localhost:8000'
 };
 window.uris.login = '/login.cgi';
 window.uris.source = {
     add: '/source/add.cgi',
     remove: '/source/delete.cgi',
     modify: '/source/modify.cgi',
-    select: '/source/select.cgi'
+    select: '/source/select.cgi',
+    get:'/source/get.cgi'
 };
 window.uris.application = {
     add: '/application/add.cgi',
@@ -53,6 +54,7 @@ const router = new VueRouter({
                 {path: '/', component: IndexPage},
                 {path: '/1-1', component: SourcePage},
                 {path: '/1-1/edit', component: SourceEditPage},
+                {path: '/1-1/edit/:id', component: SourceEditPage},
                 {path: '/1-2', component: ApplicationPage},
                 {path: '/1-2/edit', component: ApplicationEditorPage},
                 {path: '/1-3', component: DockerPage}

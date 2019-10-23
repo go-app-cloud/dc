@@ -53,7 +53,7 @@
         </el-aside>
         <el-container>
             <el-header class="header" height="48px">
-                <el-dropdown size="mini" split-button type="success">
+                <el-dropdown size="small" split-button type="success">
                     功能
                     <el-dropdown-menu slot="dropdown">
                         <el-dropdown-item>消息</el-dropdown-item>
