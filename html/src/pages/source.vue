@@ -39,10 +39,10 @@
                             <el-form-item label="Secret Key：">
                                 <el-tag type="danger">{{ props.row.secret}}</el-tag>
                             </el-form-item>
-                            <el-form-item label="检测类型：">
+                            <el-form-item label="当前状态：">
                                 <span style="color: #888">
-                                    <template v-if="props.row.check === '0'">心跳检测</template>
-                                    <template v-else>PING检测</template>
+                                    <template v-if="props.row.check === '0'">服务离线</template>
+                                    <template v-else>服务在线</template>
                                 </span>
                             </el-form-item>
                         </el-form>

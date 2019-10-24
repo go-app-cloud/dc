@@ -5,39 +5,13 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 
-class StanderRequest {
-    private int Code;
-    private Object Data;
-
-    public StanderRequest(int code, Object data) {
-        Code = code;
-        Data = data;
-    }
-
-    public int getCode() {
-        return Code;
-    }
-
-    public void setCode(int code) {
-        Code = code;
-    }
-
-    public Object getData() {
-        return Data;
-    }
-
-    public void setData(Object data) {
-        Data = data;
-    }
-}
-
-class Data1 {
+class a1{
     private String name;
-    private String email;
+    private String sex;
 
-    public Data1(String name, String email) {
+    public a1(String name, String sex) {
         this.name = name;
-        this.email = email;
+        this.sex = sex;
     }
 
     public String getName() {
@@ -48,38 +22,12 @@ class Data1 {
         this.name = name;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-}
-
-class Data2 {
-    private String sex;
-    private String wchart;
-
-    public Data2(String sex, String wchart) {
-        this.sex = sex;
-        this.wchart = wchart;
-    }
-
     public String getSex() {
         return sex;
     }
 
     public void setSex(String sex) {
         this.sex = sex;
-    }
-
-    public String getWchart() {
-        return wchart;
-    }
-
-    public void setWchart(String wchart) {
-        this.wchart = wchart;
     }
 }
 
@@ -154,7 +102,10 @@ public class Main {
         String token = router.getData().getToken();
         System.out.println(uri);
         System.out.println(token);
-        boolean b = o.sendData(uri, token, new StanderRequest(0, new Data1("admin", "pass")));
+        // for START
+        boolean b = o.sendData(uri, token, new a1("admin","男"));
+        // sleep
+        // for END
 
 
         System.out.println("=====END=====");

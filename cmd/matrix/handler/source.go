@@ -60,7 +60,6 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 			Section:     section,
 			ApiDoc:      apiDoc,
 			Type:        _type,
-			Check:       ctx.FormValue("check"),
 			Secret:      goapp.BuildPassword(64, goapp.Advance),
 		}
 		if _, err := dbEngine.Insert(s); err != nil {
@@ -110,7 +109,6 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 			Section:     section,
 			ApiDoc:      apiDoc,
 			Type:        _type,
-			Check:       ctx.FormValue("check"),
 		}
 		if _, err := dbEngine.Id(id).Cols("name", "service", "description", "section", "api_doc", "type", "check").Update(&s); err != nil {
 			res.Code = goapp.DBError

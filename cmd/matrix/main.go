@@ -2,11 +2,13 @@ package main
 
 import (
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"github.com/go-app-cloud/dc/cmd/matrix/db"
 	"github.com/go-app-cloud/dc/cmd/matrix/handler"
 	"github.com/go-app-cloud/goapp"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/websocket"
 	"log"
 )
 
@@ -58,6 +60,41 @@ func main() {
 		log.Println(err)
 	}
 	app.HandleDir(conf.HTML.Prefix, conf.HTML.Path)
+
+	/**
+	@api {websocket} /source.cgi source connection
+	@apiName SourceConnect
+	@apiGroup source
+	*/
+	device := goapp.BuildSocket(func(req goapp.AuthRequest) error {
+		source := db.Source{}
+		ok, err := engine.Id(req.AppId).Get(&source)
+		if err != nil || !ok {
+			log.Println(err)
+			return errors.New("auth error")
+		}
+		if source.Secret != req.SecretKey {
+			return errors.New("auth error")
+		}
+		return nil
+	}, func(req goapp.AuthRequest, conn *websocket.Conn) {
+		// update app source secret
+		result, err := engine.QueryString("select application.secret_key from app_source left join application on app_id = application.id left join source on source_id = source.id where source.id=?", req.AppId)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		conn.WriteJSON(goapp.Response{Code: 1001, Data: result})
+	}, func(message goapp.Message) {
+		switch message.Type {
+		case 1000:
+			break
+		}
+	}, func(appId string) {
+
+	})
+
+	app.Any("/source.cgi", device.SocketHandler)
 
 	/**
 	  @api {post} /source/login.cgi user login
@@ -116,6 +153,10 @@ func main() {
 		_, _ = ctx.JSON(res)
 	})
 
+	app.Use(func(ctx goapp.Context) {
+
+		ctx.Next()
+	})
 	// 数据来源
 	source := handler.Source{}
 	source.Handler(app.Party(_routerSource), engine)

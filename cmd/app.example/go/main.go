@@ -1,50 +1,45 @@
 package main
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"github.com/go-app-cloud/goapp"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/websocket"
 	"log"
-	"net/http"
+	"net/url"
 	"sync"
+	"time"
 )
 
 type Go struct {
 	XMLName xml.Name `xml:"go"`
 	Port    int      `xml:"port,attr"`
+	Appid   string   `xml:"appid,attr"`
 	Secret  string   `xml:"secret,attr"`
+	Matrix  struct {
+		URI string `xml:"uri,attr"`
+	} `xml:"matrix"`
+	MySQL struct {
+		URI          string `xml:"uri,attr"`
+		ShowSql      bool   `xml:"show_sql,attr"`
+		MaxIdleConns int    `xml:"max_idle_conns,attr"`
+		MaxOpenConns int    `xml:"max_open_conns,attr"`
+	} `xml:"mysql"`
+	Mongodb struct {
+		URI string `xml:"uri,attr"`
+	} `xml:"mongodb"`
 }
 
 const (
 	config = "go.conf.xml"
+	driver = "mysql"
 )
 
-var upgrade = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
 var (
-	devices sync.Map
+	tokens sync.Map
 )
-
-func echo(ctx goapp.Context) {
-	c, err := upgrade.Upgrade(ctx.ResponseWriter(), ctx.Request(), nil)
-	if err != nil {
-		log.Print("upgrade:", err)
-		return
-	}
-	defer c.Close()
-	devices.Store(c, c)
-	for {
-		_, _, err := c.ReadMessage()
-		if err != nil {
-			log.Println("read:", err)
-			break
-		}
-	}
-}
 
 type StanderRequest struct {
 	Code int         `json:"code"`
@@ -58,39 +53,74 @@ func main() {
 	}
 	app := goapp.Default()
 
-	token := goapp.Token{
+	u, err := url.Parse(conf.Matrix.URI)
+	if err != nil {
+		log.Fatal(err)
+	}
+	tokens.Store(conf.Secret, goapp.Token{
 		Secret: conf.Secret,
+	})
+
+	engine, err := goapp.NewEngine(driver, conf.MySQL.URI, conf.MySQL.ShowSql, conf.MySQL.MaxIdleConns, conf.MySQL.MaxOpenConns)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err = engine.Ping(); err != nil {
+		log.Println(err)
 	}
 
 	app.HandleDir("/", "html")
-	app.Any("/echo", echo)
+
+	goapp.BuildSocketClient(u, func(raw json.RawMessage) {
+		res := goapp.Response{}
+		if err := json.Unmarshal(raw, &res); err != nil {
+			log.Println(err)
+			return
+		}
+		switch res.Code {
+		case 1001:
+			d := res.Data
+			for _, v := range d.([]interface{}) {
+				vv := v.(map[string]interface{})
+				secretKey := vv["secret_key"].(string)
+				tokens.Store(secretKey, goapp.Token{
+					Secret: secretKey,
+				})
+			}
+			break
+		}
+	}, func(con *websocket.Conn) {
+		con.WriteJSON(goapp.AuthRequest{AppId: conf.Appid, SecretKey: conf.Secret})
+	}, func(socket *goapp.SocketClient, uri *url.URL) {
+		<-time.After(time.Second * 5)
+		socket.ReConnect()
+	})
 
 	app.Use(func(ctx goapp.Context) {
 		authorization := ctx.GetHeader("authorization")
 		if authorization == "" || len(authorization) < 32 {
-			ctx.StatusCode(400)
-			return
+			goto ErrorAuth
+		} else {
+			isAuth := false
+			tokens.Range(func(key, value interface{}) bool {
+				token := value.(goapp.Token)
+				if _, err := token.Parse(authorization); err != nil {
+					return true
+				}
+				isAuth = true
+				return !isAuth
+			})
+			if isAuth {
+				ctx.Next()
+				return
+			}
 		}
-		_, err := token.Parse(authorization)
-		if err != nil {
-			log.Println(err)
-			ctx.StatusCode(400)
-			return
-		}
-		ctx.Next()
+	ErrorAuth:
+		ctx.StatusCode(400)
+		return
 	})
+
 	app.Post("/rec.cgi", func(ctx goapp.Context) {
-		//var a interface{}
-		//ctx.ReadJSON(&a)
-		//devices.Range(func(key, value interface{}) bool {
-		//	c := value.(*websocket.Conn)
-		//	c.WriteJSON(a)
-		//	log.Println(a)
-		//	return true
-		//})
-		//ctx.JSON(goapp.Map{
-		//	`success`: true,
-		//})
 		var req StanderRequest
 		ctx.ReadJSON(&req)
 		switch req.Code {
@@ -101,6 +131,7 @@ func main() {
 			break
 
 		}
+		ctx.JSON(req)
 	})
 
 	if err := app.Run(goapp.Addr(fmt.Sprintf(":%d", conf.Port)), nil); err != nil {

@@ -42,7 +42,6 @@ func (p *Application) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 			Section:     section,
 			ApiDoc:      apiDoc,
 			Type:        _type,
-			Check:       ctx.FormValue("check"),
 		}
 		if _, err := dbEngine.Insert(s); err != nil {
 			res.Code = goapp.DBError

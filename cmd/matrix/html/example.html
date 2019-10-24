@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Example</title>
+</head>
+<body>
+<script>
+    var ws = new WebSocket("ws://localhost:8000/device.cgi");
+    ws.onopen = function (evt) {
+        console.log("Connection open ...");
+        console.log(JSON.stringify({appid: "b6c837870b0a4fcca737e9459867500d", secretkey: ".F!QAoCB+RfjDov%84u#A95tf1RFWyROLl2SJHBFLIR%WD$U)]HnMu4]DoTJSGDM"}))
+        ws.send(JSON.stringify({appid: "b6c837870b0a4fcca737e9459867500d", secretkey: ".F!QAoCB+RfjDov%84u#A95tf1RFWyROLl2SJHBFLIR%WD$U)]HnMu4]DoTJSGDM"}));
+    };
+
+    ws.onmessage = function (evt) {
+        console.log(evt.data);
+    };
+
+    ws.onclose = function (evt) {
+        console.log("Connection closed.");
+    };
+</script>
+</body>
+</html>

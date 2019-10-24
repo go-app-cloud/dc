@@ -9,7 +9,6 @@ type Source struct {
 	Service     string `xorm:"not null comment('服务URI地址') TEXT" json:"service"`
 	ApiDoc      string `xorm:"not null comment('API开发文档URI') TEXT" json:"api_doc"`
 	Type        string `xorm:"not null comment('连通方式') VARCHAR(128)" json:"type"`
-	Check       string `xorm:"not null comment('检测方式')  VARCHAR(32)" json:"check"`
 	Secret      string `xorm:"not null comment('加密字符串') VARCHAR(128)" json:"secret"`
 	CreateAt    int    `xorm:"default NULL comment('创建时间') INT(11)" json:"create_at"`
 }
