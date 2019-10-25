@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!-- 服务配置 -->
-<go port="9066" appid="b6c837870b0a4fcca737e9459867500d"
-    secret=".F!QAoCB+RfjDov%84u#A95tf1RFWyROLl2SJHBFLIR%WD$U)]HnMu4]DoTJSGDM">
+<go port="9066" appid="60bfb577ee3547f89445c39518b2267f"
+    secret="d!*.Hv$MhLjanxQlh*c1htR908.O@6^8U1RK56^Pdqde*EBA9LYt~K.qaS,dvdMo">
     <!-- 资源发布中心 -->
     <matrix uri="ws://localhost:8000/source.cgi"/>
     <!-- 数据库 -->
-    <mysql uri="root:123456@/matrix?charset=utf8" show_sql="true" max_idle_conns="1" max_open_conns="10"/>
+    <mysql uri="root:@/matrix?charset=utf8" show_sql="true" max_idle_conns="1" max_open_conns="10"/>
     <mongodb uri=""/>
 </go>

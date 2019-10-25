@@ -50,6 +50,8 @@
 </template>
 
 <script>
+    import {Loading} from 'element-ui';
+
     function resource(uri, index, page, callback) {
         axios.get(uri, {
             params: {
@@ -74,6 +76,7 @@
                 data: [],
                 sections: [],
                 form: {
+                    id: '',
                     name: '',
                     section: '',
                     type: '',
@@ -84,28 +87,38 @@
         },
         methods: {
             onSubmit() {
-                console.log(this.$data.form.source)
-                // let _this = this;
-                // const loading = Loading.service({
-                //     lock: true,
-                //     text: '正在提交数据保存...',
-                // });
-                // setTimeout(function () {
-                //     let form = _this.$data.form;
-                //     let data = {
-                //         name: form.name,
-                //         section: form.section,
-                //         type: form.type,
-                //         source: _this.$data.form.source.join(';'),
-                //         description: form.description
-                //     };
-                //     axios.post(window.uris.server + window.uris.application.add, data).then(function (response) {
-                //         loading.close();
-                //     }).catch(function (error) {
-                //         loading.close();
-                //         this.$message.error(error);
-                //     });
-                // }, 1000);
+                let _this = this;
+                const loading = Loading.service({
+                    lock: true,
+                    text: '正在提交数据保存...',
+                });
+                setTimeout(function () {
+                    let form = _this.$data.form;
+                    let data = {
+                        id: form.id,
+                        name: form.name,
+                        section: form.section,
+                        type: form.type,
+                        source: _this.$data.form.source.join(';'),
+                        description: form.description
+                    };
+                    if (submitType !== 1) {
+                        axios.post(window.uris.server + window.uris.application.add, data).then(function (response) {
+                            loading.close();
+                        }).catch(function (error) {
+                            loading.close();
+                            this.$message.error(error);
+                        });
+                    } else {
+                        axios.post(window.uris.server + window.uris.application.modify, data).then(function (response) {
+                            loading.close();
+                        }).catch(function (error) {
+                            loading.close();
+                            this.$message.error(error);
+                        });
+                    }
+
+                }, 1000);
             },
             goBack() {
                 this.$router.push({path: '/1-2'});

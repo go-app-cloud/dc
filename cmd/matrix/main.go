@@ -68,7 +68,7 @@ func main() {
 	*/
 	device := goapp.BuildSocket(func(req goapp.AuthRequest) error {
 		source := db.Source{}
-		ok, err := engine.Id(req.AppId).Get(&source)
+		ok, err := engine.Where("id = ?", req.AppId).Get(&source)
 		if err != nil || !ok {
 			log.Println(err)
 			return errors.New("auth error")

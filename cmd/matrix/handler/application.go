@@ -60,9 +60,84 @@ func (p *Application) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 				models = append(models, model)
 			}
 			if _, err := session.Insert(&models, &ap); err != nil {
-				res.Code = goapp.DBError
-				res.Msg = err.Error()
 				return nil, err
+			}
+			return nil, nil
+		})
+		if err != nil {
+			res.Msg = err.Error()
+			res.Code = goapp.DBError
+			_, _ = ctx.JSON(res)
+			return
+		}
+		res.Code = goapp.Success
+		_, _ = ctx.JSON(res)
+
+	})
+	/**
+	  @api {post} /application/modify.cgi modify application information
+	  @apiName modifyApplication
+	  @apiGroup application
+
+	  @apiParam {String} name application name
+	  @apiParam {String} name application name
+	  @apiParam {String} type application type
+	  @apiParam {String} source application base from source
+	  @apiParam {String} section section
+	  @apiParam {String} description description
+
+	  @apiSuccessExample {json} Success-Response:
+	      HTTP/1.1 200 OK
+	      {
+	        "code": 0
+	      }
+	*/
+	party.Post("/modify.cgi", func(ctx goapp.Context) {
+		res := goapp.Response{}
+
+		id := ctx.FormValue("id")
+		name := ctx.FormValue("name")
+		_type := ctx.FormValue("type")
+		sources := strings.Split(ctx.FormValue("source"), ";")
+		section := ctx.FormValue("section")
+		description := ctx.FormValue("description")
+
+		_, err := dbEngine.Transaction(func(session *xorm.Session) (interface{}, error) {
+			entity := db.Application{
+				Name:        name,
+				Type:        _type,
+				Section:     section,
+				Description: description,
+			}
+			ok, err := session.ID(id).Get(&entity)
+			if err != nil {
+				return nil, err
+			}
+			if ok {
+				// update application information
+				if _, err := session.Cols("name", "description", "section", "type").Update(&entity); err != nil {
+					return nil, err
+				}
+				// delete all app source item
+				if _, err := session.Where("app_id = ?", id).Delete(&db.AppSource{}); err != nil {
+					return nil, err
+				}
+				// insert app source item
+				models := make([]db.AppSource, 0)
+				for _, v := range sources {
+					if len(v) < 32 {
+						continue
+					}
+					model := db.AppSource{
+						Id:       strings.ReplaceAll(uuid.Must(uuid.NewV4()).String(), "-", ""),
+						AppId:    id,
+						SourceId: v,
+					}
+					models = append(models, model)
+				}
+				if _, err := session.Insert(models); err != nil {
+					return nil, err
+				}
 			}
 			return nil, nil
 		})

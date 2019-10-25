@@ -6,7 +6,7 @@
                      class="el-menu-vertical"
                      background-color="#141f29"
                      text-color="#fff"
-                     :default-openeds="['/1','/2']"
+                     :default-openeds="['/1','/2','/3']"
                      router
                      active-text-color="#67C23A">
                 <div class="logo">
@@ -37,13 +37,31 @@
                         <span slot="title">集群管理</span>
                     </template>
                     <el-menu-item index="/2-1">
-                        <i class="el-icon-mobile"></i>SSH Client
+                        <i class="el-icon-mobile"></i>裸机管理
                     </el-menu-item>
                     <el-menu-item index="/2-2">
-                        <i class="el-icon-success"></i>VNC Client
+                        <i class="el-icon-success"></i>存储管理
                     </el-menu-item>
                     <el-menu-item index="/2-3">
-                        <i class="el-icon-s-finance"></i>策略执行
+                        <i class="el-icon-s-finance"></i>镜像管理
+                    </el-menu-item>
+                    <el-menu-item index="/2-4">
+                        <i class="el-icon-document-delete"></i>网卡管理
+                    </el-menu-item>
+                </el-submenu>
+                <el-submenu index="/3">
+                    <template slot="title">
+                        <i class="el-icon-eleme"></i>
+                        <span slot="title">云主机</span>
+                    </template>
+                    <el-menu-item index="/2-1">
+                        <i class="el-icon-folder-add"></i>云主机
+                    </el-menu-item>
+                    <el-menu-item index="/2-2">
+                        <i class="el-icon-sort"></i>防火墙
+                    </el-menu-item>
+                    <el-menu-item index="/2-3">
+                        <i class="el-icon-document-copy"></i>磁盘管理
                     </el-menu-item>
                 </el-submenu>
                 <div :class="navBottom">

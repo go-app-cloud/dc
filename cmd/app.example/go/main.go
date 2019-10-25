@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-type Go struct {
+type go0 struct {
 	XMLName xml.Name `xml:"go"`
 	Port    int      `xml:"port,attr"`
 	Appid   string   `xml:"appid,attr"`
@@ -36,6 +36,11 @@ const (
 	config = "go.conf.xml"
 	driver = "mysql"
 )
+const (
+	api     = "/api"
+	receive = "/receive.cgi"
+	search  = "/search.cgi"
+)
 
 var (
 	tokens sync.Map
@@ -47,7 +52,8 @@ type StanderRequest struct {
 }
 
 func main() {
-	conf := Go{}
+	// 加载配置文件
+	conf := go0{}
 	if err := goapp.LoadXMLConfig(config, &conf); err != nil {
 		log.Fatal(err)
 	}
@@ -57,10 +63,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	tokens.Store(conf.Secret, goapp.Token{
-		Secret: conf.Secret,
-	})
-
+	// 初始化 数据库 连接池
 	engine, err := goapp.NewEngine(driver, conf.MySQL.URI, conf.MySQL.ShowSql, conf.MySQL.MaxIdleConns, conf.MySQL.MaxOpenConns)
 	if err != nil {
 		log.Fatal(err)
@@ -69,8 +72,14 @@ func main() {
 		log.Println(err)
 	}
 
+	// 初始化 认证器
+	tokens.Store(conf.Secret, goapp.Token{
+		Secret: conf.Secret,
+	})
+	// 静态文件处理流程
 	app.HandleDir("/", "html")
 
+	// TCP 连接到资源发布中心
 	goapp.BuildSocketClient(u, func(raw json.RawMessage) {
 		res := goapp.Response{}
 		if err := json.Unmarshal(raw, &res); err != nil {
@@ -96,11 +105,21 @@ func main() {
 		socket.ReConnect()
 	})
 
+	// API 自定义单元
+	api := handler{
+		dbEngine: engine,
+		party:    app.Party(api),
+	}
+
+	api.Handler()
+
+	// 验证过滤
 	app.Use(func(ctx goapp.Context) {
 		authorization := ctx.GetHeader("authorization")
 		if authorization == "" || len(authorization) < 32 {
 			goto ErrorAuth
 		} else {
+			// 授权应用、资源传输单元认证
 			isAuth := false
 			tokens.Range(func(key, value interface{}) bool {
 				token := value.(goapp.Token)
@@ -119,22 +138,51 @@ func main() {
 		ctx.StatusCode(400)
 		return
 	})
-
-	app.Post("/rec.cgi", func(ctx goapp.Context) {
-		var req StanderRequest
-		ctx.ReadJSON(&req)
-		switch req.Code {
-		case 0:
-			log.Println(req.Data)
-			break
-		case 1:
-			break
-
-		}
-		ctx.JSON(req)
-	})
+	app.Post(receive, api.ApiUpload)
+	app.Post(search, api.ApiSearch)
 
 	if err := app.Run(goapp.Addr(fmt.Sprintf(":%d", conf.Port)), nil); err != nil {
 		log.Fatal(err)
 	}
+}
+
+/**
+ * TODO: API 上报、查询数据
+ */
+type handler struct {
+	dbEngine *goapp.Engine
+	party    goapp.Party
+}
+
+/**
+ * TODO: 自定义
+ */
+func (p *handler) Handler() {
+	p.party.Post("/", func(ctx goapp.Context) {
+
+	})
+}
+
+/**
+ * TODO: 数据上报
+ */
+func (p *handler) ApiUpload(ctx goapp.Context) {
+	var req StanderRequest
+	ctx.ReadJSON(&req)
+	switch req.Code {
+	case 0:
+		log.Println(req.Data)
+		break
+	case 1:
+		break
+
+	}
+	ctx.JSON(req)
+}
+
+/**
+ * TODO：数据查询
+ */
+func (p *handler) ApiSearch(ctx goapp.Context) {
+
 }
