@@ -31,18 +31,18 @@
                         <i class="el-icon-s-grid"></i>容器服务
                     </el-menu-item>
                 </el-submenu>
-                <el-submenu>
+                <el-submenu index="/2">
                     <template slot="title">
                         <i class="el-icon-coin"></i>
                         <span slot="title">集群管理</span>
                     </template>
-                    <el-menu-item>
+                    <el-menu-item index="/2-1">
                         <i class="el-icon-mobile"></i>SSH Client
                     </el-menu-item>
-                    <el-menu-item>
+                    <el-menu-item index="/2-2">
                         <i class="el-icon-success"></i>VNC Client
                     </el-menu-item>
-                    <el-menu-item>
+                    <el-menu-item index="/2-3">
                         <i class="el-icon-s-finance"></i>策略执行
                     </el-menu-item>
                 </el-submenu>

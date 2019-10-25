@@ -36,12 +36,6 @@
                 <el-form-item label="文档:" :rules="[{ required: true, message: '文档不能为空'}]">
                     <el-input v-model="form.api_doc"></el-input>
                 </el-form-item>
-                <el-form-item label="检测:" :rules="[{ required: true, message: '描述不能为空'}]">
-                    <el-radio-group v-model="form.check">
-                        <el-radio label="0">心跳检测</el-radio>
-                        <el-radio label="1">PING检测</el-radio>
-                    </el-radio-group>
-                </el-form-item>
                 <el-form-item>
                     <el-button type="success" @click="onSubmit">{{button_text}}</el-button>
                     <el-button type="danger" plain>取消</el-button>
@@ -65,7 +59,6 @@
                 form: {
                     name: '',
                     service: '',
-                    check: '0',
                     section: '',
                     type: '',
                     description: '',
@@ -113,6 +106,7 @@
                 axios.post(window.uris.server + window.uris.source.get, {
                     id: this.$route.params.id,
                 }).then(function (response) {
+                    console.log(response.data);
                     _this.$data.form = response.data.data
                 }).catch(function (error) {
                 });

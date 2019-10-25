@@ -2,7 +2,6 @@
     <div class="body">
         <el-alert style="margin: 0 0 1rem 0"
                   title="帮助消息"
-                  type="warning"
                   description="系统目前处于研发阶段，功能正在不断完善中!"
                   show-icon>
         </el-alert>
@@ -56,17 +55,16 @@
                     </template>
                 </el-table-column>
                 <el-table-column
-                        label="数据源授权(数量)"
-                        prop="sources">
-                    <template slot-scope="props">
-                        <el-tag type="danger" size="mini">{{ props.row.sources.split('|').length }} 套数据源</el-tag>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                        width="120"
                         label="建设单位">
                     <template slot-scope="props">
                         <el-tag type="success" size="mini" effect="plain">{{props.row.section}}</el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        label="数据源"
+                        prop="sources">
+                    <template slot-scope="props">
+                        <el-button size="mini" round @click="openSource(props.row.id)">数据源</el-button>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -78,8 +76,7 @@
                                 操作<i class="el-icon-arrow-down el-icon--right"></i>
                             </el-button>
                             <el-dropdown-menu slot="dropdown">
-                                <el-dropdown-item>配置</el-dropdown-item>
-                                <el-dropdown-item>授权</el-dropdown-item>
+                                <el-dropdown-item @click.native="config(props.row.id)">配置</el-dropdown-item>
                                 <el-dropdown-item @click.native="remove(props.row.id)" divided>删除
                                 </el-dropdown-item>
                             </el-dropdown-menu>
@@ -94,6 +91,33 @@
                     layout="prev, pager, next"
                     :total="total">
             </el-pagination>
+            <el-drawer
+                    title="数据源"
+                    :visible.sync="drawer"
+                    :direction="direction">
+                <el-row>
+                    <el-table
+                            :data="tt"
+                            style="width: 100%;height: 100%;">
+                        <el-table-column
+                                label="数据名称">
+                            <template slot-scope="props">
+                                <el-tag>{{props.row.name}}</el-tag>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                                width="100"
+                                label="操作">
+                            <template slot-scope="props">
+                                <el-button type="danger" size="mini" round
+                                           @click="removeSource(props.row.id,props.row.appId)">移除
+                                </el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </el-row>
+            </el-drawer>
+
         </div>
     </div>
 </template>
@@ -118,7 +142,10 @@
             return {
                 tableData: [],
                 total: 0,
-                c: 1
+                c: 1,
+                drawer: false,
+                direction: 'rtl',
+                tt: []
             }
         },
         mounted() {
@@ -129,6 +156,30 @@
             });
         },
         methods: {
+            config(id){
+                let _this = this;
+                _this.$router.push({path: '/1-2/edit/' + id})
+            },
+            openSource(id) {
+                let _this = this;
+                _this.$data.tt = [];
+                axios.get(window.uris.server + window.uris.application.source, {
+                    params: {
+                        id: id,
+                    }
+                }).then(function (res) {
+                    if (res.data.data == null) {
+                        _this.$data.drawer = true;
+                        return;
+                    }
+                    for (let i = 0; i < res.data.data.length; i++) {
+                        let dd = res.data.data[i];
+                        dd.appId = id;
+                        _this.$data.tt.push(dd);
+                    }
+                    _this.$data.drawer = true
+                })
+            },
             tableRowStyle({row, rowIndex}) {
                 return 'font-size:0.8rem;'
             },
@@ -150,12 +201,40 @@
             help() {
 
             },
-            open(uri) {
-                window.open(uri, '_blank')
+            removeSource(val, app) {
+                let _this = this;
+                this.$confirm('此操作将移除此项数据服务, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'info'
+                }).then(() => {
+                    axios.get(window.uris.server + window.uris.application.source_delete, {
+                        params: {
+                            id: val,
+                            app: app,
+                        }
+                    }).then(function (res) {
+                        _this.$message({
+                            type: 'success',
+                            message: '服务成功移除!'
+                        });
+                        _this.openSource(app);
+                    }).catch(function (error) {
+                        _this.$message({
+                            type: 'error',
+                            message: '服务移除失败！'
+                        });
+                    });
+                }).catch(() => {
+                    _this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
             },
             remove(val) {
                 let _this = this;
-                this.$confirm('此操作将永久删除该项数据服务, 是否继续?', '提示', {
+                this.$confirm('此操作将永久删除该项数据应用, 是否继续?', '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     type: 'warning'

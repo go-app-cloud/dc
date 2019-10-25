@@ -7,9 +7,11 @@ import (
 	"github.com/satori/go.uuid"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type Source struct {
+	Device *sync.Map
 }
 
 // 登入/路由/数据源
@@ -110,7 +112,7 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 			ApiDoc:      apiDoc,
 			Type:        _type,
 		}
-		if _, err := dbEngine.Id(id).Cols("name", "service", "description", "section", "api_doc", "type", "check").Update(&s); err != nil {
+		if _, err := dbEngine.Id(id).Cols("name", "service", "description", "section", "api_doc", "type").Update(&s); err != nil {
 			res.Code = goapp.DBError
 			res.Msg = err.Error()
 			goto ErrorModifyCGI
@@ -133,26 +135,29 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 	 @apiSuccessExample {json} Success-Response:
 	   HTTP/1.1 200 OK
 	    {
-		 "total": 60,
-		 "items":[{
-			 "api_doc": "...",
-			 "check": 1,
-			 "description": "...",
-			 "id": "...",
-			 "name": "...",
-			 "owner": "",
-			 "section": "...",
-			 "service": "...",
-			 "type": "...",
-			 "create_at":0
-			}]
+			"code":0,
+		    "data":{
+			 "total": 60,
+			 "items":[{
+				 "api_doc": "...",
+				 "check": 1,
+				 "description": "...",
+				 "id": "...",
+				 "name": "...",
+				 "owner": "",
+				 "section": "...",
+				 "service": "...",
+				 "type": "...",
+				 "create_at":0
+				}]
+			}
 		}
 	*/
 	party.Get("/select.cgi", func(ctx goapp.Context) {
 		res := goapp.Response{}
 
 		page := ctx.URLParam("page")
-		p, err := strconv.Atoi(page)
+		pl, err := strconv.Atoi(page)
 		if err != nil {
 			goto ErrorSelectCGI
 		} else {
@@ -169,15 +174,38 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 				goto ErrorSelectCGI
 			}
 			sources := make([]db.Source, 0)
-			if err := dbEngine.Desc("create_at").Limit(p, i*p).Find(&sources); err != nil {
+			if err := dbEngine.Desc("create_at").Limit(pl, i*pl).Find(&sources); err != nil {
 				res.Code = goapp.DBError
 				res.Msg = err.Error()
 				goto ErrorSelectCGI
 			}
 			res.Code = goapp.Success
+
+			sed := make([]db.SourceEx, 0)
+			for _, v := range sources {
+				c := 0
+				_, ok := p.Device.Load(v.Id)
+				if ok {
+					c = 1
+				}
+				sed = append(sed, db.SourceEx{
+					Id:          v.Id,
+					Name:        v.Name,
+					Description: v.Description,
+					Secret:      v.Secret,
+					Owner:       v.Owner,
+					Service:     v.Service,
+					ApiDoc:      v.ApiDoc,
+					Type:        v.Type,
+					Section:     v.Section,
+					CreateAt:    v.CreateAt,
+					Check:       c,
+				})
+
+			}
 			res.Data = goapp.Map{
 				"total": total,
-				"items": sources,
+				"items": sed,
 			}
 			_, _ = ctx.JSON(res)
 			return
@@ -242,7 +270,7 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 		res := goapp.Response{}
 		id := ctx.FormValue("id")
 		s := db.Source{}
-		b, err := dbEngine.Id(id).Get(&s)
+		b, err := dbEngine.Where("id = ?", id).Get(&s)
 		if err != nil || !b {
 			res.Code = goapp.DBError
 			log.Error(err)

@@ -36,13 +36,16 @@ window.uris.source = {
     remove: '/source/delete.cgi',
     modify: '/source/modify.cgi',
     select: '/source/select.cgi',
-    get:'/source/get.cgi'
+    get: '/source/get.cgi'
 };
 window.uris.application = {
     add: '/application/add.cgi',
     remove: '/application/delete.cgi',
     modify: '/application/modify.cgi',
-    select: '/application/select.cgi'
+    select: '/application/select.cgi',
+    source: '/application/source.cgi',
+    get: '/application/get.cgi',
+    source_delete: '/application/source_delete.cgi'
 };
 Vue.use(VueRouter).use(ElementUI);
 
@@ -57,6 +60,7 @@ const router = new VueRouter({
                 {path: '/1-1/edit/:id', component: SourceEditPage},
                 {path: '/1-2', component: ApplicationPage},
                 {path: '/1-2/edit', component: ApplicationEditorPage},
+                {path: '/1-2/edit/:id', component: ApplicationEditorPage},
                 {path: '/1-3', component: DockerPage}
             ]
         },

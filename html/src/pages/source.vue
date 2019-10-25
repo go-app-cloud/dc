@@ -31,18 +31,19 @@
                                 <span style="color: #888">{{ props.row.description }}</span>
                             </el-form-item>
                             <el-form-item label="服务URI：">
-                                <el-tag type="danger">{{ props.row.service }}</el-tag>
+                                <el-tag type="warning" size="small">{{ props.row.service }}</el-tag>
                             </el-form-item>
                             <el-form-item label="App Id：">
-                                <el-tag type="danger">{{ props.row.id}}</el-tag>
+                                <el-tag>{{ props.row.id}}</el-tag>
                             </el-form-item>
                             <el-form-item label="Secret Key：">
-                                <el-tag type="danger">{{ props.row.secret}}</el-tag>
+                                <el-tag>{{ props.row.secret}}</el-tag>
                             </el-form-item>
                             <el-form-item label="当前状态：">
                                 <span style="color: #888">
-                                    <template v-if="props.row.check === '0'">服务离线</template>
-                                    <template v-else>服务在线</template>
+                                    <template v-if="props.row.check === 0"><el-tag
+                                            type="danger" effect="dark" size="mini">服务离线</el-tag></template>
+                                    <template v-else><el-tag type="success" size="mini" effect="dark">服务在线</el-tag></template>
                                 </span>
                             </el-form-item>
                         </el-form>

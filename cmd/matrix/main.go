@@ -91,7 +91,6 @@ func main() {
 			break
 		}
 	}, func(appId string) {
-
 	})
 
 	app.Any("/source.cgi", device.SocketHandler)
@@ -153,12 +152,10 @@ func main() {
 		_, _ = ctx.JSON(res)
 	})
 
-	app.Use(func(ctx goapp.Context) {
-
-		ctx.Next()
-	})
 	// 数据来源
-	source := handler.Source{}
+	source := handler.Source{
+		Device: &device.Devices,
+	}
 	source.Handler(app.Party(_routerSource), engine)
 
 	// 数据应用

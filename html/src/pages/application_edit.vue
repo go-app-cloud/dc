@@ -33,8 +33,7 @@
                             filterable
                             :filter-method="filterMethod"
                             filter-placeholder="请输入数据源名称"
-                            :button-texts="['到左边', '到右边']"
-                            v-model="value"
+                            v-model="form.source"
                             :data="data">
                     </el-transfer>
                 </el-form-item>
@@ -42,7 +41,7 @@
                     <el-input type="textarea" v-model="form.description" autocomplete="off"></el-input>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="success" @click="onSubmit">立即创建</el-button>
+                    <el-button type="success" @click="onSubmit">{{button_text}}</el-button>
                     <el-button type="danger" plain>取消</el-button>
                 </el-form-item>
             </el-form>
@@ -62,44 +61,51 @@
         })
     }
 
-    import {Loading} from 'element-ui';
-
+    let submitType = 0;
     const pinyin = require("pinyin");
 
     export default {
         name: "application_edit",
         data() {
             return {
-                data: [],
+                button_text: '立即创建',
                 value: [],
                 types: [],
+                data: [],
                 sections: [],
                 form: {
                     name: '',
-                    uri: '',
-                    check: '0',
                     section: '',
                     type: '',
-                    description: '',
-                    api_doc: ''
+                    source: [],
+                    description: ''
                 }
             }
         },
         methods: {
             onSubmit() {
-                let _this = this;
-                const loading = Loading.service({
-                    lock: true,
-                    text: '正在提交数据保存...',
-                });
-                setTimeout(function () {
-                    axios.post(window.uris.server + window.uris.source.add, _this.$data.form).then(function (response) {
-                        loading.close();
-                    }).catch(function (error) {
-                        loading.close();
-                        this.$message.error(error);
-                    });
-                }, 1000);
+                console.log(this.$data.form.source)
+                // let _this = this;
+                // const loading = Loading.service({
+                //     lock: true,
+                //     text: '正在提交数据保存...',
+                // });
+                // setTimeout(function () {
+                //     let form = _this.$data.form;
+                //     let data = {
+                //         name: form.name,
+                //         section: form.section,
+                //         type: form.type,
+                //         source: _this.$data.form.source.join(';'),
+                //         description: form.description
+                //     };
+                //     axios.post(window.uris.server + window.uris.application.add, data).then(function (response) {
+                //         loading.close();
+                //     }).catch(function (error) {
+                //         loading.close();
+                //         this.$message.error(error);
+                //     });
+                // }, 1000);
             },
             goBack() {
                 this.$router.push({path: '/1-2'});
@@ -110,6 +116,39 @@
         },
         mounted() {
             let _this = this;
+            if (typeof this.$route.params.id != 'undefined') {
+                submitType = 1;
+                _this.$data.button_text = '更新数据';
+                let appId = _this.$route.params.id;
+                axios.post(window.uris.server + window.uris.application.get, {
+                    id: appId,
+                }).then(function (response) {
+                    let data = response.data.data;
+                    _this.$data.form.id = data.id;
+                    _this.$data.form.name = data.name;
+                    _this.$data.form.section = data.section;
+                    _this.$data.form.type = data.type;
+                    _this.$data.form.description = data.description;
+
+
+                    axios.get(window.uris.server + window.uris.application.source, {
+                        params: {
+                            id: appId,
+                        }
+                    }).then(function (response) {
+                        _this.$data.form.source = [];
+                        if (response.data.data != null) {
+                            for (let i = 0; i < response.data.data.length; i++) {
+                                _this.$data.form.source.push(response.data.data[i].id);
+                            }
+                        }
+                        console.log(JSON.parse(response.data.data[i].id))
+
+                    }).catch(function (error) {
+                    });
+                }).catch(function (error) {
+                });
+            }
             axios.get(window.uris.server + '/app.json')
                 .then(function (res) {
                     _this.$data.types = res.data
@@ -129,7 +168,7 @@
                 for (let i = 0; i < items.length; i++) {
                     _this.$data.data.push({
                         label: items[i].name,
-                        key: i,
+                        key: items[i].id,
                         pinyin: pinyin(items[i].name, {style: pinyin.STYLE_NORMAL}).join('')
                     });
                 }

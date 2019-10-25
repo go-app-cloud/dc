@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <matrix port="8000" secret="Yntt3lG1Om)%t.YGUm0NYAvgUPE(9XS$.bt]TTKhC3Vg2+g%6oIc@6HS*Nvg3,6.">
     <html prefix="/" path="html"/>
-    <mysql uri="root:123456@/matrix?charset=utf8" show_sql="true" max_idle_conns="1" max_open_conns="10"/>
+    <mysql uri="root:@/matrix?charset=utf8" show_sql="true" max_idle_conns="1" max_open_conns="10"/>
 </matrix>
