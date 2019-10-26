@@ -46,6 +46,11 @@ var (
 	tokens sync.Map
 )
 
+type effective struct {
+	Time  int64
+	Flag  bool
+	Token goapp.Token
+}
 type StanderRequest struct {
 	Code int         `json:"code"`
 	Data interface{} `json:"data"`
@@ -73,8 +78,12 @@ func main() {
 	}
 
 	// 初始化 认证器
-	tokens.Store(conf.Secret, goapp.Token{
-		Secret: conf.Secret,
+	tokens.Store(conf.Secret, effective{
+		Time: time.Now().Unix(),
+		Flag: true,
+		Token: goapp.Token{
+			Secret: conf.Secret,
+		},
 	})
 	// 静态文件处理流程
 	app.HandleDir("/", "html")
@@ -88,12 +97,19 @@ func main() {
 		}
 		switch res.Code {
 		case 1001:
+			if res.Data == nil {
+				break
+			}
 			d := res.Data
 			for _, v := range d.([]interface{}) {
 				vv := v.(map[string]interface{})
 				secretKey := vv["secret_key"].(string)
-				tokens.Store(secretKey, goapp.Token{
-					Secret: secretKey,
+				tokens.Store(secretKey, effective{
+					Time: time.Now().Unix(),
+					Token: goapp.Token{
+						Secret: secretKey,
+					},
+					Flag: false,
 				})
 			}
 			break
@@ -113,6 +129,25 @@ func main() {
 
 	api.Handler()
 
+	go func() {
+		for {
+			<-time.After(5 * time.Second)
+			tokens.Range(func(key, value interface{}) bool {
+				eff := value.(effective)
+				log.Println(eff.Time)
+				log.Println(time.Now().Add(-time.Second * 10).Unix())
+
+				if eff.Flag {
+					return true
+				}
+
+				if eff.Time < time.Now().Add(-time.Second*10).Unix() {
+					tokens.Delete(key)
+				}
+				return true
+			})
+		}
+	}()
 	// 验证过滤
 	app.Use(func(ctx goapp.Context) {
 		authorization := ctx.GetHeader("authorization")
@@ -122,8 +157,8 @@ func main() {
 			// 授权应用、资源传输单元认证
 			isAuth := false
 			tokens.Range(func(key, value interface{}) bool {
-				token := value.(goapp.Token)
-				if _, err := token.Parse(authorization); err != nil {
+				eff := value.(effective)
+				if _, err := eff.Token.Parse(authorization); err != nil {
 					return true
 				}
 				isAuth = true
@@ -184,5 +219,5 @@ func (p *handler) ApiUpload(ctx goapp.Context) {
  * TODO：数据查询
  */
 func (p *handler) ApiSearch(ctx goapp.Context) {
-
+	ctx.JSON(goapp.Map{"data": "0"})
 }

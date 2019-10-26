@@ -24,11 +24,7 @@ type matrix struct {
 	XMLName xml.Name `xml:"matrix"`
 	Port    int      `xml:"port,attr"`
 	Secret  string   `xml:"secret,attr"`
-	HTML    struct {
-		Prefix string `xml:"prefix,attr"`
-		Path   string `xml:"path,attr"`
-	} `xml:"html"`
-	MySQL struct {
+	MySQL   struct {
 		URI          string `xml:"uri,attr"`
 		ShowSql      bool   `xml:"show_sql,attr"`
 		MaxIdleConns int    `xml:"max_idle_conns,attr"`
@@ -59,12 +55,16 @@ func main() {
 	if err = engine.Ping(); err != nil {
 		log.Println(err)
 	}
-	app.HandleDir(conf.HTML.Prefix, conf.HTML.Path)
-
+	//app.HandleDir(conf.HTML.Prefix, conf.HTML.Path)
+	//app.HandleDir("/", "./html", iris.DirOptions{Asset: Asset, AssetInfo: AssetInfo, AssetNames: AssetNames})
+	//app.RegisterView(goapp.HTML("./html", ".html"))
+	//app.Get("/", func(ctx goapp.Context) {
+	//	ctx.View("index.html")
+	//})
 	/**
 	@api {websocket} /source.cgi source connection
 	@apiName SourceConnect
-	@apiGroup source
+	@apiGroup message
 	*/
 	device := goapp.BuildSocket(func(req goapp.AuthRequest) error {
 		source := db.Source{}
@@ -78,19 +78,21 @@ func main() {
 		}
 		return nil
 	}, func(req goapp.AuthRequest, conn *websocket.Conn) {
-		// update app source secret
-		result, err := engine.QueryString("select application.secret_key from app_source left join application on app_id = application.id left join source on source_id = source.id where source.id=?", req.AppId)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		conn.WriteJSON(goapp.Response{Code: 1001, Data: result})
+
 	}, func(message goapp.Message) {
 		switch message.Type {
 		case 1000:
 			break
 		}
 	}, func(appId string) {
+	}, func(appId string, conn *websocket.Conn) {
+		// update app source secret
+		result, err := engine.QueryString("select application.secret_key from app_source left join application on app_id = application.id left join source on source_id = source.id where source.id=?", appId)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		conn.WriteJSON(goapp.Response{Code: 1001, Data: result})
 	})
 
 	app.Any("/source.cgi", device.SocketHandler)
@@ -159,8 +161,11 @@ func main() {
 	source.Handler(app.Party(_routerSource), engine)
 
 	// 数据应用
-	application := handler.Application{}
-	application.Handler(app.Party(_routerApplication), engine)
+	application := handler.Application{
+		Devices:  &device.Devices,
+		DbEngine: engine,
+	}
+	application.Handler(app.Party(_routerApplication))
 
 	if err := app.Run(goapp.Addr(fmt.Sprintf(":%d", conf.Port)), nil); err != nil {
 		log.Fatal(err)

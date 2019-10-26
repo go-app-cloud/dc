@@ -15,7 +15,7 @@ type Source struct {
 }
 
 // 登入/路由/数据源
-type LoginResponse struct {
+type loginSourceResponse struct {
 	URI   string `json:"uri"`
 	Token string `json:"token"`
 }
@@ -324,7 +324,7 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 				res.Msg = err.Error()
 				goto ErrorLogin
 			}
-			res.Data = LoginResponse{
+			res.Data = loginSourceResponse{
 				URI:   s.Service,
 				Token: t,
 			}

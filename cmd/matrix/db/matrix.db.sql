@@ -43,8 +43,7 @@ create table user
   password  varchar(128) not null comment '密码',
   salt      varchar(128) not null comment '加密盐',
   create_at bigint       not null comment '创建时间'
-)
-  comment '用户名';
+)comment '用户名';
 
 
 INSERT INTO matrix.user (id, username, password, salt, create_at) VALUES ('b6c837870b0a4fcca737e9459867500e', 'admin', '8e4f00f95901e923569a38207c2c5870', 'pDT9fFDSVrSet1VbKFacFO5Q4DUWijYp', 0);

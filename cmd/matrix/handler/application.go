@@ -8,12 +8,21 @@ import (
 	"github.com/satori/go.uuid"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type Application struct {
+	Devices  *sync.Map
+	DbEngine *goapp.Engine
 }
 
-func (p *Application) Handler(party goapp.Party, dbEngine *goapp.Engine) {
+// 登入/路由/数据源
+type loginApplicationResponse struct {
+	Token    string      `json:"token"`
+	Services interface{} `json:"services"`
+}
+
+func (p *Application) Handler(party goapp.Party) {
 	/**
 	  @api {post} /application/add.cgi add new application
 	  @apiName addApplication
@@ -39,9 +48,8 @@ func (p *Application) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 		sources := strings.Split(ctx.FormValue("source"), ";")
 		section := ctx.FormValue("section")
 		description := ctx.FormValue("description")
-
-		_, err := dbEngine.Transaction(func(session *xorm.Session) (interface{}, error) {
-			appId := strings.ReplaceAll(uuid.Must(uuid.NewV4()).String(), "-", "")
+		appId := strings.ReplaceAll(uuid.Must(uuid.NewV4()).String(), "-", "")
+		_, err := p.DbEngine.Transaction(func(session *xorm.Session) (interface{}, error) {
 			ap := db.Application{
 				Id:          appId,
 				Name:        name,
@@ -102,7 +110,7 @@ func (p *Application) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 		section := ctx.FormValue("section")
 		description := ctx.FormValue("description")
 
-		_, err := dbEngine.Transaction(func(session *xorm.Session) (interface{}, error) {
+		_, err := p.DbEngine.Transaction(func(session *xorm.Session) (interface{}, error) {
 			entity := db.Application{
 				Name:        name,
 				Type:        _type,
@@ -180,7 +188,7 @@ func (p *Application) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 		res := goapp.Response{}
 
 		page := ctx.URLParam("page")
-		p, err := strconv.Atoi(page)
+		pg, err := strconv.Atoi(page)
 		if err != nil {
 			goto ErrorSelectCGI
 		} else {
@@ -192,12 +200,12 @@ func (p *Application) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 			if i > 0 {
 				i--
 			}
-			total, err := dbEngine.Count(new(db.Application))
+			total, err := p.DbEngine.Count(new(db.Application))
 			if err != nil {
 				goto ErrorSelectCGI
 			}
 			applications := make([]db.Application, 0)
-			if err := dbEngine.Limit(p, i*p).Find(&applications); err != nil {
+			if err := p.DbEngine.Limit(pg, i*pg).Find(&applications); err != nil {
 				res.Code = goapp.DBError
 				res.Msg = err.Error()
 				goto ErrorSelectCGI
@@ -214,8 +222,8 @@ func (p *Application) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 		_, _ = ctx.JSON(res)
 	})
 	/**
-	 @api {get} /application/source.cgi select application by source item
-	 @apiName SelectSourceApplication
+	 @api {get} /application/source.cgi select source item by application id
+	 @apiName SelectSourceByApplicationId
 	 @apiGroup application
 
 	 @apiParam {String} id application id
@@ -225,14 +233,15 @@ func (p *Application) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 	       "code": 0,
 	       "data":[{
 	          "id": "...",
-			  "name": "..."
+			  "name": "...",
+			  "service": "..."
 	       }]
 	     }
 	*/
 	party.Get("/source.cgi", func(ctx goapp.Context) {
 		res := goapp.Response{}
 		id := ctx.URLParam("id")
-		result, err := dbEngine.QueryString("select source.id, source.name from app_source left join source on app_source.source_id = source.id where app_source.app_id = ?", id)
+		result, err := p.DbEngine.QueryString("select source.id, source.name,source.service from app_source left join source on app_source.source_id = source.id where app_source.app_id = ?", id)
 		if err != nil {
 			goto ErrorSelectSourceCGI
 		}
@@ -245,7 +254,7 @@ func (p *Application) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 	})
 
 	/**
-	  @api {get} /application/source_delete.cgi delete application
+	  @api {get} /application/source_delete.cgi delete source by application id
 	  @apiName deleteApplicationSource
 	  @apiGroup application
 
@@ -261,7 +270,7 @@ func (p *Application) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 		res := goapp.Response{}
 		id := ctx.URLParam("id")
 		app := ctx.URLParam("app")
-		if _, err := dbEngine.Where("source_id = ? and app_id = ?", id, app).Delete(&db.AppSource{}); err != nil {
+		if _, err := p.DbEngine.Where("source_id = ? and app_id = ?", id, app).Delete(&db.AppSource{}); err != nil {
 			res.Code = goapp.DBError
 			res.Msg = err.Error()
 			_, _ = ctx.JSON(res)
@@ -287,7 +296,7 @@ func (p *Application) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 	party.Get("/delete.cgi", func(ctx goapp.Context) {
 		res := goapp.Response{}
 		id := ctx.URLParam("id")
-		if _, err := dbEngine.Transaction(func(session *xorm.Session) (interface{}, error) {
+		if _, err := p.DbEngine.Transaction(func(session *xorm.Session) (interface{}, error) {
 			if _, err := session.ID(id).Delete(&db.Application{}); err != nil {
 				res.Code = goapp.DBError
 				res.Msg = err.Error()
@@ -328,7 +337,7 @@ func (p *Application) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 		res := goapp.Response{}
 		id := ctx.FormValue("id")
 		s := db.Application{}
-		b, err := dbEngine.Where("id = ?", id).Get(&s)
+		b, err := p.DbEngine.Where("id = ?", id).Get(&s)
 		if err != nil || !b {
 			res.Code = goapp.DBError
 			log.Error(err)
@@ -339,6 +348,66 @@ func (p *Application) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 		_, _ = ctx.JSON(res)
 		return
 	ErrorDeleteCGI:
+		_, _ = ctx.JSON(res)
+	})
+	/**
+	  @api {post} /application/login.cgi route application
+	  @apiName routeApplication
+	  @apiGroup application
+
+	  @apiParam {String} id app id
+	  @apiParam {String} secret secret key
+
+	  @apiSuccessExample {json} Success-Response:
+	      HTTP/1.1 200 OK
+	      {
+	        "code": 0,
+	        "data": {
+	         "services": [{
+				"id":"***",
+				"name":"",
+				"service":"service"
+			}],
+	         "token": "*****",
+	        },
+	      }
+	*/
+	party.Post("/login.cgi", func(ctx goapp.Context) {
+		res := goapp.Response{}
+		appId := ctx.FormValue("id")
+		secretKey := ctx.FormValue("secret")
+		s := db.Application{}
+		ok, err := p.DbEngine.Where("id = ? and secret_key = ?", appId, secretKey).Get(&s)
+		if err != nil {
+			res.Code = -1
+			res.Msg = err.Error()
+			goto ErrorLogin
+		} else {
+			if !ok {
+				res.Code = -2
+				goto ErrorLogin
+			}
+			token := goapp.Token{Secret: s.SecretKey}
+			t, err := token.Build(goapp.Claims{Data: goapp.App{AppId: s.Id, SecretKey: s.SecretKey}})
+			if err != nil {
+				res.Code = -3
+				res.Msg = err.Error()
+				goto ErrorLogin
+			}
+			ret, err := p.DbEngine.QueryString("select app_source.source_id as id, source.name,source.service as service from app_source left join source on app_source.source_id = source.id where app_source.app_id = ?", appId)
+			if err != nil {
+				res.Code = -1
+				res.Msg = err.Error()
+				goto ErrorLogin
+			}
+			res.Data = loginApplicationResponse{
+				Token:    t,
+				Services: ret,
+			}
+			_, _ = ctx.JSON(res)
+			return
+		}
+	ErrorLogin:
 		_, _ = ctx.JSON(res)
 	})
 }
