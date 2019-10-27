@@ -33,7 +33,7 @@ func TestSecret(t *testing.T) {
 
 func TestService(t *testing.T) {
 	req, _ := http.NewRequest("POST", "http://localhost:9066/search.cgi", strings.NewReader(""))
-	req.Header.Set("authorization", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJEYXRhIjp7IkFwcElkIjoiNTdjOTY5NTAyNmExNGEwNzgxMzQyOTg3YzE1YzVkMWIiLCJTZWNyZXRLZXkiOiJoW01iLG1LWTAqcVJ3Zk5QcSVMV0QuJU5qR1RQWF5jVWRGdEJ4OSo3bDNpXWlMISVxQUJvYkNMQkVRaCNFU2kxYWFxYWR3WjNWNlFxeDRqT3RSbWdrLTlIYnMkSVtpUXBUQyxueDc9enVuKW5TSC1pQGEqYVRraGRxWCQ4SS1DKyJ9LCJleHAiOjE1NzIxMDAwNzZ9.MO3UCXJS8pFkDWu49Bb4K7lFv62pZLf65XCp2tUVR5s")
+	req.Header.Set("authorization", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJEYXRhIjp7IkFwcElkIjoiNTdjOTY5NTAyNmExNGEwNzgxMzQyOTg3YzE1YzVkMWIiLCJTZWNyZXRLZXkiOiJoW01iLG1LWTAqcVJ3Zk5QcSVMV0QuJU5qR1RQWF5jVWRGdEJ4OSo3bDNpXWlMISVxQUJvYkNMQkVRaCNFU2kxYWFxYWR3WjNWNlFxeDRqT3RSbWdrLTlIYnMkSVtpUXBUQyxueDc9enVuKW5TSC1pQGEqYVRraGRxWCQ4SS1DKyJ9LCJleHAiOjE1NzIxMDQ3MDJ9.7jC0FOPiL4G3P79wErIJ8_jK9VOeXR_c4hVpbR6UoB4")
 	resp, err := (&http.Client{}).Do(req)
 	if err != nil {
 		t.Log("save topic failed", err.Error())

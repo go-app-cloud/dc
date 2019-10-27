@@ -96,6 +96,8 @@ func main() {
 			return
 		}
 		switch res.Code {
+		case 0:
+			break
 		case 1001:
 			if res.Data == nil {
 				break
@@ -119,6 +121,10 @@ func main() {
 	}, func(socket *goapp.SocketClient, uri *url.URL) {
 		<-time.After(time.Second * 5)
 		socket.ReConnect()
+	}, func(con *websocket.Conn) error {
+		return con.WriteJSON(goapp.Message{
+			Type: 0,
+		})
 	})
 
 	// API 自定义单元
@@ -134,14 +140,12 @@ func main() {
 			<-time.After(5 * time.Second)
 			tokens.Range(func(key, value interface{}) bool {
 				eff := value.(effective)
-				log.Println(eff.Time)
-				log.Println(time.Now().Add(-time.Second * 10).Unix())
 
 				if eff.Flag {
 					return true
 				}
 
-				if eff.Time < time.Now().Add(-time.Second*10).Unix() {
+				if eff.Time < time.Now().Add(-time.Second*30).Unix() {
 					tokens.Delete(key)
 				}
 				return true

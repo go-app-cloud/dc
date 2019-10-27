@@ -79,11 +79,17 @@ func main() {
 		return nil
 	}, func(req goapp.AuthRequest, conn *websocket.Conn) {
 
-	}, func(message goapp.Message) {
+	}, func(conn *websocket.Conn, message goapp.Message) error {
 		switch message.Type {
+		case 0:
+			// heart
+			return conn.WriteJSON(goapp.Message{
+				Type: 0,
+			})
 		case 1000:
 			break
 		}
+		return nil
 	}, func(appId string) {
 	}, func(appId string, conn *websocket.Conn) {
 		// update app source secret
