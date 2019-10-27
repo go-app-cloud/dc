@@ -124,9 +124,7 @@ func main() {
 		<-time.After(time.Second * 5)
 		socket.ReConnect()
 	}, func(con *websocket.Conn) error {
-		return con.WriteJSON(goapp.Message{
-			Type: 0,
-		})
+		return nil
 	})
 
 	// API 自定义单元
@@ -147,7 +145,7 @@ func main() {
 					return true
 				}
 
-				if eff.Time < time.Now().Add(-time.Second*30).Unix() {
+				if eff.Time < time.Now().Add(-time.Second * 30).Unix() {
 					tokens.Delete(key)
 				}
 				return true

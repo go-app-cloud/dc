@@ -81,9 +81,6 @@ func main() {
 		switch message.Type {
 		case 0:
 			// heart
-			return conn.WriteJSON(goapp.Message{
-				Type: 0,
-			})
 		case 1000:
 			break
 		}
