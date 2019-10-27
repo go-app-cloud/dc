@@ -1,8 +1,7 @@
 
+## 资源发布中心
 
-> 跨平台编译
+------------
 
-```bash
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build main.go
-CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build main.go
-```
+1. 管理数据资源（应用矩阵）
+2. 管理第三方使用数据的应用

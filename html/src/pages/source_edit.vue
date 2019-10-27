@@ -3,7 +3,7 @@
         <el-page-header @back="goBack" content="编辑数据源">
         </el-page-header>
         <div>
-            <el-form ref="form" class="form" labelPosition="right" :model="form" label-width="100px">
+            <el-form ref="form" class="form" labelPosition="right" :model="form" label-width="130px">
                 <el-form-item label="服务名称:" :rules="[{ required: true, message: '服务名称不能为空'}]">
                     <el-input v-model="form.name" autocomplete="off"></el-input>
                 </el-form-item>
@@ -30,8 +30,11 @@
                         </el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="提供服务:" :rules="[{ required: true, message: '提供服务不能为空'}]">
+                <el-form-item label="上报接口:" :rules="[{ required: true, message: '数据上报接口不能为空'}]">
                     <el-input v-model="form.service"></el-input>
+                </el-form-item>
+                <el-form-item label="查询接口:" :rules="[{ required: true, message: '数据查询接口不能为空'}]">
+                    <el-input v-model="form.search"></el-input>
                 </el-form-item>
                 <el-form-item label="文档:" :rules="[{ required: true, message: '文档不能为空'}]">
                     <el-input v-model="form.api_doc"></el-input>
@@ -62,7 +65,8 @@
                     section: '',
                     type: '',
                     description: '',
-                    api_doc: ''
+                    api_doc: '',
+                    search: ''
                 }
             }
         },

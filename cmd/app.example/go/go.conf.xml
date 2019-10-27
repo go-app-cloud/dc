@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!-- 服务配置 -->
-<go port="9066" appid="60bfb577ee3547f89445c39518b2267f"
-    secret="d!*.Hv$MhLjanxQlh*c1htR908.O@6^8U1RK56^Pdqde*EBA9LYt~K.qaS,dvdMo">
+<go port="9066" appid="a879b30784e940678a18e15e0bc4fe1b"
+    secret="OPD47*bJgaf0V^evBj1ym[l[F[X*vzcYip-ilF=CbugyhW36iw^=@8Cev!yJ,9Kx">
     <!-- 资源发布中心 -->
     <matrix uri="ws://localhost:8000/source.cgi"/>
     <!-- 数据库 -->

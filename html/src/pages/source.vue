@@ -30,8 +30,11 @@
                             <el-form-item label="描述信息：">
                                 <span style="color: #888">{{ props.row.description }}</span>
                             </el-form-item>
-                            <el-form-item label="服务URI：">
+                            <el-form-item label="上报接口：">
                                 <el-tag type="warning" size="small">{{ props.row.service }}</el-tag>
+                            </el-form-item>
+                            <el-form-item label="查询接口：">
+                                <el-tag type="warning" size="small">{{ props.row.search }}</el-tag>
                             </el-form-item>
                             <el-form-item label="App Id：">
                                 <el-tag>{{ props.row.id}}</el-tag>

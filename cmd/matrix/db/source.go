@@ -7,6 +7,7 @@ type Source struct {
 	Section     string `xorm:"not null comment('数据维护部门') VARCHAR(128)" json:"section"`
 	Owner       string `xorm:"not null comment('所属者') VARCHAR(32)" json:"owner"`
 	Service     string `xorm:"not null comment('服务URI地址') TEXT" json:"service"`
+	Search      string `xorm:"not null comment('查询服务') TEXT" json:"search"`
 	ApiDoc      string `xorm:"not null comment('API开发文档URI') TEXT" json:"api_doc"`
 	Type        string `xorm:"not null comment('连通方式') VARCHAR(128)" json:"type"`
 	Secret      string `xorm:"not null comment('加密字符串') VARCHAR(128)" json:"secret"`
@@ -19,6 +20,7 @@ type SourceEx struct {
 	Section     string `json:"section"`
 	Owner       string `json:"owner"`
 	Service     string `json:"service"`
+	Search      string `json:"search"`
 	ApiDoc      string `json:"api_doc"`
 	Type        string `json:"type"`
 	Secret      string `json:"secret"`

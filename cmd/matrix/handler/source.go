@@ -10,6 +10,7 @@ import (
 	"sync"
 )
 
+//Source source struct
 type Source struct {
 	Device *sync.Map
 }
@@ -21,10 +22,11 @@ type loginSourceResponse struct {
 }
 
 // 刷新/凭证
-type RefreshTokenResponse struct {
+type refreshTokenResponse struct {
 	Token string `json:"token"`
 }
 
+//Handler source handler
 func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 	/**
 	  @api {post} /source/add.cgi add source
@@ -37,6 +39,7 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 	  @apiParam {String} check network check type
 	  @apiParam {String} section system of section
 	  @apiParam {String} type data sync type
+	  @apiParam {String} search data service search uri
 	  @apiParam {String} description description forsource
 	  @apiParam {String} api_doc api document url
 
@@ -52,6 +55,7 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 		service := ctx.FormValue("service")
 		section := ctx.FormValue("section")
 		_type := ctx.FormValue("type")
+		search := ctx.FormValue("search")
 		description := ctx.FormValue("description")
 		apiDoc := ctx.FormValue("api_doc")
 		s := db.Source{
@@ -62,6 +66,7 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 			Section:     section,
 			ApiDoc:      apiDoc,
 			Type:        _type,
+			Search:      search,
 			Secret:      goapp.BuildPassword(64, goapp.Advance),
 		}
 		if _, err := dbEngine.Insert(s); err != nil {
@@ -83,6 +88,7 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 
 	  @apiParam {String} name source name
 	  @apiParam {String} uri data service uri
+	  @apiParam {String} search data service search uri
 	  @apiParam {String} check network check type
 	  @apiParam {String} section system of section
 	  @apiParam {String} type data sync type
@@ -102,6 +108,7 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 		service := ctx.FormValue("service")
 		section := ctx.FormValue("section")
 		_type := ctx.FormValue("type")
+		search := ctx.FormValue("search")
 		description := ctx.FormValue("description")
 		apiDoc := ctx.FormValue("api_doc")
 		s := db.Source{
@@ -111,8 +118,9 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 			Section:     section,
 			ApiDoc:      apiDoc,
 			Type:        _type,
+			Search:      search,
 		}
-		if _, err := dbEngine.Id(id).Cols("name", "service", "description", "section", "api_doc", "type").Update(&s); err != nil {
+		if _, err := dbEngine.Where("id = ?", id).Cols("name", "service", "description", "section", "search", "api_doc", "type").Update(&s); err != nil {
 			res.Code = goapp.DBError
 			res.Msg = err.Error()
 			goto ErrorModifyCGI
@@ -147,6 +155,7 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 				 "owner": "",
 				 "section": "...",
 				 "service": "...",
+				 "search":"..."
 				 "type": "...",
 				 "create_at":0
 				}]
@@ -195,6 +204,7 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 					Secret:      v.Secret,
 					Owner:       v.Owner,
 					Service:     v.Service,
+					Search:      v.Search,
 					ApiDoc:      v.ApiDoc,
 					Type:        v.Type,
 					Section:     v.Section,
@@ -229,7 +239,7 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 	party.Get("/delete.cgi", func(ctx goapp.Context) {
 		res := goapp.Response{}
 		id := ctx.URLParam("id")
-		if _, err := dbEngine.Id(id).Delete(&db.Source{}); err != nil {
+		if _, err := dbEngine.Where("id = ?", id).Delete(&db.Source{}); err != nil {
 			res.Code = goapp.DBError
 			res.Msg = err.Error()
 			goto ErrorDeleteCGI
@@ -257,8 +267,9 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 				"description": "新生入学报名.数据服务、监护人详细信息、班级详细信息、学校录取通知书等。",
 				"section": "大数据中心",
 				"owner": "",
-				"service": "http://localhost:9066/rec.cgi",
-				"api_doc": "http://localhost:8080/#/1-1/edit",
+				"service": "...",
+				"search":"...."
+				"api_doc": "...",
 				"type": "数据库同步",
 				"check": 0,
 				"secret": "Yntt3lG1Om)%t.YGUm0NYAvgUPE(9XS$.bt]TTKhC3Vg2+g%6oIc@6HS*Nvg3,6.",
@@ -373,7 +384,7 @@ func (p *Source) Handler(party goapp.Party, dbEngine *goapp.Engine) {
 				res.Msg = err.Error()
 				goto ErrorLogin
 			}
-			res.Data = RefreshTokenResponse{
+			res.Data = refreshTokenResponse{
 				Token: t,
 			}
 			_, _ = ctx.JSON(res)

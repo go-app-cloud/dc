@@ -102,7 +102,7 @@
                         source: _this.$data.form.source.join(';'),
                         description: form.description
                     };
-                    if (submitType !== 1) {
+                    if (submitType === 0) {
                         axios.post(window.uris.server + window.uris.application.add, data).then(function (response) {
                             loading.close();
                         }).catch(function (error) {

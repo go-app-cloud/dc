@@ -394,7 +394,7 @@ func (p *Application) Handler(party goapp.Party) {
 				res.Msg = err.Error()
 				goto ErrorLogin
 			}
-			ret, err := p.DbEngine.QueryString("select app_source.source_id as id, source.name,source.service as service from app_source left join source on app_source.source_id = source.id where app_source.app_id = ?", appId)
+			ret, err := p.DbEngine.QueryString("select app_source.source_id as id, source.name,source.search as service from app_source left join source on app_source.source_id = source.id where app_source.app_id = ?", appId)
 			if err != nil {
 				res.Code = -1
 				res.Msg = err.Error()
