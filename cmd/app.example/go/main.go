@@ -51,7 +51,9 @@ type effective struct {
 	Flag  bool
 	Token goapp.Token
 }
-type StanderRequest struct {
+
+//StanderRequest stander request
+type standerRequest struct {
 	Code int         `json:"code"`
 	Data interface{} `json:"data"`
 }
@@ -91,7 +93,7 @@ func main() {
 	// TCP 连接到资源发布中心
 	goapp.BuildSocketClient(u, func(raw json.RawMessage) {
 		res := goapp.Response{}
-		if err := json.Unmarshal(raw, &res); err != nil {
+		if err = json.Unmarshal(raw, &res); err != nil {
 			log.Println(err)
 			return
 		}
@@ -117,7 +119,7 @@ func main() {
 			break
 		}
 	}, func(con *websocket.Conn) {
-		con.WriteJSON(goapp.AuthRequest{AppId: conf.Appid, SecretKey: conf.Secret})
+		_ = con.WriteJSON(goapp.AuthRequest{AppId: conf.Appid, SecretKey: conf.Secret})
 	}, func(socket *goapp.SocketClient, uri *url.URL) {
 		<-time.After(time.Second * 5)
 		socket.ReConnect()
@@ -128,12 +130,12 @@ func main() {
 	})
 
 	// API 自定义单元
-	api := handler{
+	apiHandler := handler{
 		dbEngine: engine,
 		party:    app.Party(api),
 	}
 
-	api.Handler()
+	apiHandler.Handler()
 
 	go func() {
 		for {
@@ -162,7 +164,7 @@ func main() {
 			isAuth := false
 			tokens.Range(func(key, value interface{}) bool {
 				eff := value.(effective)
-				if _, err := eff.Token.Parse(authorization); err != nil {
+				if _, err = eff.Token.Parse(authorization); err != nil {
 					return true
 				}
 				isAuth = true
@@ -177,10 +179,10 @@ func main() {
 		ctx.StatusCode(400)
 		return
 	})
-	app.Post(receive, api.ApiUpload)
-	app.Post(search, api.ApiSearch)
+	app.Post(receive, apiHandler.apiUpload)
+	app.Post(search, apiHandler.apiSearch)
 
-	if err := app.Run(goapp.Addr(fmt.Sprintf(":%d", conf.Port)), nil); err != nil {
+	if err = app.Run(goapp.Addr(fmt.Sprintf(":%d", conf.Port)), nil); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -193,21 +195,17 @@ type handler struct {
 	party    goapp.Party
 }
 
-/**
- * TODO: 自定义
- */
+//Handler custom handler
 func (p *handler) Handler() {
 	p.party.Post("/", func(ctx goapp.Context) {
 
 	})
 }
 
-/**
- * TODO: 数据上报
- */
-func (p *handler) ApiUpload(ctx goapp.Context) {
-	var req StanderRequest
-	ctx.ReadJSON(&req)
+//ApiUpload upload data
+func (p *handler) apiUpload(ctx goapp.Context) {
+	var req standerRequest
+	_ = ctx.ReadJSON(&req)
 	switch req.Code {
 	case 0:
 		log.Println(req.Data)
@@ -216,12 +214,10 @@ func (p *handler) ApiUpload(ctx goapp.Context) {
 		break
 
 	}
-	ctx.JSON(req)
+	_, _ = ctx.JSON(req)
 }
 
-/**
- * TODO：数据查询
- */
-func (p *handler) ApiSearch(ctx goapp.Context) {
-	ctx.JSON(goapp.Map{"data": "0"})
+// ApiSearch search data
+func (p *handler) apiSearch(ctx goapp.Context) {
+	_, _ = ctx.JSON(goapp.Map{"data": "0"})
 }
