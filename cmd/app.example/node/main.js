@@ -5,6 +5,11 @@ let jwt = require('jsonwebtoken');
 let SecretKey = "OPD47*bJgaf0V^evBj1ym[l[F[X*vzcYip-ilF=CbugyhW36iw^=@8Cev!yJ,9Kx";
 let url = "mongodb://localhost:27017/demo0";
 
+process.on('uncaughtException', function (err) {
+    console.log(err.stack);
+    console.log('NOT exit...');
+});
+
 /**
  * 认证过滤器
  */
@@ -58,6 +63,9 @@ function BuildClient(option) {
     ws.on('message', function incoming(data) {
         option.onRead(data);
     });
+    ws.on('error', function (err) {
+
+    });
 }
 
 let option = {
@@ -66,11 +74,18 @@ let option = {
     secretkey: SecretKey,
     onRead: function (data) {
         let info = JSON.parse(data);
-        tokens = [];
-        if (info.data != null && typeof info.data.length != "undefined") {
-            for (let i = 0; i < info.data.length; i++) {
-                tokens.push(info.data[i].secret_key)
-            }
+        switch (info.code) {
+            case 100:
+                console.log("=======注册服务成功=======");
+                break;
+            case 1001:
+                tokens = [];
+                if (info.data != null && typeof info.data.length != "undefined") {
+                    for (let i = 0; i < info.data.length; i++) {
+                        tokens.push(info.data[i].secret_key)
+                    }
+                }
+                break;
         }
     },
     onClose: function () {
@@ -80,37 +95,34 @@ let option = {
         }, 5000)
     }
 };
+
 BuildClient(option);
 
 
 // 数据库管理
-let MongoClient = require('mongodb').MongoClient;
-let bodyParser = require('body-parser');
-// parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({extended: false}))
-// parse application/json
-app.use(bodyParser.json());
+let mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/test', {});
+mongoose.Promise = global.Promise;
+
+let First = mongoose.model('first', {id: String, name: String});
+
+app.use(express.json());
 /**
  * HTTP 业务逻辑
  */
 app.post('/receive.cgi', function (req, res) {
     console.log(req.body);
-    // MongoClient.connect(url, {useNewUrlParser: true}, function (err, db) {
-    //     if (err) throw err;
-    //     let body = req.body;
-    //     let id = body.id;
-    //     body.id = mongoose.Types.ObjectId(id);
-    //     db.collection('first').insertOne(body, function (err, result) {
-    //         if (err) {
-    //             res.send('写入数据失败！');
-    //         }
-    //         db.close();
-    //         res.send('数据写入成功！');
-    //     });
-    // });
+    var kitty = new First(req.body);
+    kitty.save(function (err) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log('meow');
+        }
+    });
     res.end();
 });
 
 app.listen(9066, function () {
-    console.log('http://localhost:3000');
+    console.log('http://localhost:9066');
 });
