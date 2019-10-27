@@ -55,12 +55,10 @@ func main() {
 	if err = engine.Ping(); err != nil {
 		log.Println(err)
 	}
-	//app.HandleDir(conf.HTML.Prefix, conf.HTML.Path)
-	//app.HandleDir("/", "./html", iris.DirOptions{Asset: Asset, AssetInfo: AssetInfo, AssetNames: AssetNames})
-	//app.RegisterView(goapp.HTML("./html", ".html"))
-	//app.Get("/", func(ctx goapp.Context) {
-	//	ctx.View("index.html")
-	//})
+	static(app)
+	app.Any("/", func(ctx goapp.Context) {
+		_ = ctx.ServeFile("html/index.html", true)
+	})
 	/**
 	@api {websocket} /source.cgi source connection
 	@apiName SourceConnect
@@ -91,14 +89,14 @@ func main() {
 		}
 		return nil
 	}, func(appId string) {
-	}, func(appId string, conn *websocket.Conn) {
+	}, func(appId string, conn *websocket.Conn) error {
 		// update app source secret
 		result, err := engine.QueryString("select application.secret_key from app_source left join application on app_id = application.id left join source on source_id = source.id where source.id=?", appId)
 		if err != nil {
 			log.Println(err)
-			return
+			return err
 		}
-		conn.WriteJSON(goapp.Response{Code: 1001, Data: result})
+		return conn.WriteJSON(goapp.Response{Code: 1001, Data: result})
 	})
 
 	app.Any("/source.cgi", device.SocketHandler)
