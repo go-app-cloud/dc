@@ -56,9 +56,6 @@ func main() {
 		log.Println(err)
 	}
 	static(app)
-	app.Any("/", func(ctx goapp.Context) {
-		_ = ctx.ServeFile("html/index.html", true)
-	})
 	/**
 	@api {websocket} /source.cgi source connection
 	@apiName SourceConnect
